@@ -1,0 +1,43 @@
+import React, { forwardRef, useState } from 'react';
+import * as S from './styles';
+
+export const Input = forwardRef(({ label, error, type = 'text', mask, onChange, ...props }, ref) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === 'password';
+  const inputType = isPassword && showPassword ? 'text' : type;
+
+  // Função para criar a máscara de CPF na mão (sem precisar de bibliotecas extras)
+  const handleChange = (e) => {
+    if (mask === 'cpf') {
+      let value = e.target.value.replace(/\D/g, ''); // Tira tudo que não é número
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      e.target.value = value;
+    }
+    if (onChange) onChange(e); // Repassa o evento para o react-hook-form
+  };
+
+  return (
+    <S.InputWrapper>
+      {label && <S.Label>{label}</S.Label>}
+      <S.InputContainer>
+        <S.StyledInput
+          ref={ref}
+          type={inputType}
+          onChange={handleChange}
+          $hasError={!!error}
+          {...props}
+        />
+        {isPassword && (
+          <S.ToggleButton type="button" onClick={() => setShowPassword(!showPassword)}>
+            {showPassword ? '👁️' : '🙈'}
+          </S.ToggleButton>
+        )}
+      </S.InputContainer>
+      {error && <S.ErrorMessage>{error}</S.ErrorMessage>}
+    </S.InputWrapper>
+  );
+});
+
+Input.displayName = 'Input';
